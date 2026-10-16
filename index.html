@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>历史系统学习平台</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="site-nav" id="siteNav">
+    <div class="sn-head"><span class="sn-seal">录</span>全书目录</div>
+    <nav class="sn-toc" id="siteToc"></nav>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="sn-toggle" id="btnSiteNav" title="打开目录">☰ 目录</button>
+      <a class="brand" href="#/">📜 历史系统学习平台</a>
+      <nav class="topnav">
+        <a href="#/" data-route="home">学习路线</a>
+        <a href="#/timeline" data-route="timeline">中外对照时间轴</a>
+        <a href="#/settings" data-route="settings">设置</a>
+      </nav>
+      <div class="top-progress">总进度 <strong id="topProgress">0%</strong></div>
+    </header>
+
+    <main id="app" class="container"></main>
+
+    <footer class="site-footer">历史系统学习平台 · 本机学习 · 进度保存在浏览器本地</footer>
+  </div>
+
+</div>
+
+<!-- 课程体系总纲 -->
+<script src="content/curriculum.js"></script>
+<!-- 中国史 12 单元 -->
+<script src="content/china/c01.js"></script>
+<script src="content/china/c02.js"></script>
+<script src="content/china/c03.js"></script>
+<script src="content/china/c04.js"></script>
+<script src="content/china/c05.js"></script>
+<script src="content/china/c06.js"></script>
+<script src="content/china/c07.js"></script>
+<script src="content/china/c08.js"></script>
+<script src="content/china/c09.js"></script>
+<script src="content/china/c10.js"></script>
+<script src="content/china/c11.js"></script>
+<script src="content/china/c12.js"></script>
+<!-- 世界史 12 单元 -->
+<script src="content/world/w01.js"></script>
+<script src="content/world/w02.js"></script>
+<script src="content/world/w03.js"></script>
+<script src="content/world/w04.js"></script>
+<script src="content/world/w05.js"></script>
+<script src="content/world/w06.js"></script>
+<script src="content/world/w07.js"></script>
+<script src="content/world/w08.js"></script>
+<script src="content/world/w09.js"></script>
+<script src="content/world/w10.js"></script>
+<script src="content/world/w11.js"></script>
+<script src="content/world/w12.js"></script>
+<!-- 中外对照专题 6 个 -->
+<script src="content/topics/t01.js"></script>
+<script src="content/topics/t02.js"></script>
+<script src="content/topics/t03.js"></script>
+<script src="content/topics/t04.js"></script>
+<script src="content/topics/t05.js"></script>
+<script src="content/topics/t06.js"></script>
+<!-- 应用逻辑 -->
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+<script src="js/timeline.js"></script>
+<script>HC.app.init();</script>
+</body>
+</html>

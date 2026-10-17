@@ -33,6 +33,22 @@
 
 </div>
 
+<!-- 本机 AI 提问浮窗（仅 file:// 本机打开时显示；线上版自动隐藏） -->
+<button class="ask-fab hidden" id="btnAsk" title="问 AI">问</button>
+<div class="ask-panel" id="askPanel">
+  <div class="ask-head">
+    <span>问 AI · 本机</span>
+    <button class="ask-close" id="btnAskClose" title="关闭">✕</button>
+  </div>
+  <div class="ask-body" id="askBody">
+    <div class="ask-msg sys">读到哪里想深挖，直接问。回答遵守史实分层，野史会标「传说」。</div>
+  </div>
+  <div class="ask-foot">
+    <input id="askInput" placeholder="例如：分封制后来怎么了？" autocomplete="off">
+    <button id="btnAskSend">发送</button>
+  </div>
+</div>
+
 <!-- 课程体系总纲 -->
 <script src="content/curriculum.js"></script>
 <!-- 中国史 12 单元 -->

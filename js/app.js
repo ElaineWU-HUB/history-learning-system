@@ -30,6 +30,7 @@
       });
       var tgl = document.getElementById('btnSiteNav');
       if (tgl) tgl.onclick = function () { document.body.classList.toggle('sn-open'); };
+      HC.ask.init();
       HC.app.route();
     },
 
@@ -514,4 +515,93 @@
   function notFound(c) {
     c.innerHTML = '<section class="notfound"><h1>页面不存在</h1><p>链接可能已失效。</p><a class="btn" href="#/">返回首页</a></section>';
   }
+
+  /* ============================================================
+   * 本机 AI 提问浮窗：页面里直接问，答案来自本机提问服务
+   * （ask-server，launchd 按需启动；仅 file:// 本机打开时显示）
+   * ============================================================ */
+  HC.ask = {
+    ASK_URL: 'http://127.0.0.1:3457/ask',
+
+    init: function () {
+      if (location.protocol !== 'file:') return; // 线上分享版不显示（无本机服务）
+      var fab = document.getElementById('btnAsk');
+      var panel = document.getElementById('askPanel');
+      if (!fab || !panel) return;
+      fab.classList.remove('hidden');
+      fab.onclick = function () {
+        var open = !panel.classList.contains('open');
+        panel.classList.toggle('open', open);
+        if (open) setTimeout(function () { document.getElementById('askInput').focus(); }, 60);
+      };
+      document.getElementById('btnAskClose').onclick = function () { panel.classList.remove('open'); };
+      document.getElementById('btnAskSend').onclick = function () { HC.ask.send(); };
+      document.getElementById('askInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') HC.ask.send();
+      });
+    },
+
+    // 收集当前页面上下文，让回答衔接阅读位置
+    contextOf: function () {
+      var h = location.hash || '';
+      var m;
+      if ((m = h.match(/^#\/lesson\/([a-z]\d+)\/(\d+)$/))) {
+        var u = HC.getUnit(m[1]);
+        var ls = u && u.lessons && u.lessons[parseInt(m[2], 10)];
+        if (!u || !ls) return '';
+        var kp = ls.keyPoints && ls.keyPoints.length ? '本课要点：' + ls.keyPoints.join('；') : '';
+        return '用户正在阅读：' + HC.getTrack(u).name + ' ' + m[1] + '《' + u.title + '》' +
+          '第' + (parseInt(m[2], 10) + 1) + '课《' + ls.title + '》。' + kp;
+      }
+      if ((m = h.match(/^#\/unit\/([a-z]\d+)$/))) {
+        var uu = HC.getUnit(m[1]);
+        return '用户正在浏览：单元页 ' + m[1] + '《' + uu.title + '》（时期：' + uu.period + '）。';
+      }
+      if ((m = h.match(/^#\/topic\/(t\d+)$/))) {
+        var t = HC.getTopic(m[1]);
+        return t ? '用户正在浏览：中外对照专题《' + t.title + '》。' : '';
+      }
+      return '';
+    },
+
+    send: function () {
+      var input = document.getElementById('askInput');
+      var q = input.value.trim();
+      if (!q) return;
+      var self = this;
+      this.addMsg('user', q);
+      input.value = '';
+      var waiting = this.addMsg('sys', '正在思考……', 'thinking');
+      fetch(this.ASK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, context: this.contextOf() })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('status ' + r.status);
+        return r.json();
+      }).then(function (d) {
+        waiting.remove();
+        if (d.answer) self.addMsg('ai', d.answer);
+        else self.addMsg('sys', '没有收到回答：' + (d.error || '未知错误'));
+      }).catch(function () {
+        waiting.remove();
+        self.addMsg('sys', '提问服务未启动。这是本机功能：请确认当前是通过 file:// 打开的本地页面。');
+      });
+    },
+
+    // 简单 markdown-lite：**加粗** + 换行（内容来自本机服务，可信）
+    addMsg: function (who, text, cls) {
+      var body = document.getElementById('askBody');
+      var div = document.createElement('div');
+      div.className = 'ask-msg ' + who + (cls ? ' ' + cls : '');
+      if (who === 'ai') {
+        div.innerHTML = esc(text).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+      } else {
+        div.textContent = text;
+      }
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+      return div;
+    }
+  };
 })();

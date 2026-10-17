@@ -178,6 +178,43 @@ await page.waitForSelector('.outline-note');
   check('大纲单元提示与要点渲染', m.kps >= 3, m.note);
 }
 
+// —— 本机 AI 提问浮窗（mock fetch 验证 UI，不依赖服务进程） ——
+await page.goto(url + '#/lesson/c01/0');
+await page.waitForSelector('.lesson-body');
+{
+  const fabVisible = await page.evaluate(() => {
+    const f = document.getElementById('btnAsk');
+    return !!f && !f.classList.contains('hidden');
+  });
+  check('提问浮窗按钮可见（file://）', fabVisible);
+  await page.click('#btnAsk');
+  check('点击展开提问面板', await page.locator('#askPanel.open').count() === 1);
+  await page.evaluate(() => {
+    window.fetch = () => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ answer: '**商鞅变法**是秦国的改革。\n第二行内容。' })
+    });
+  });
+  await page.fill('#askInput', '商鞅变法是什么？');
+  await page.click('#btnAskSend');
+  await page.waitForSelector('.ask-msg.ai');
+  const m = await page.evaluate(() => ({
+    userMsg: [...document.querySelectorAll('.ask-msg.user')].some(x => x.textContent.includes('商鞅变法')),
+    aiMsg: document.querySelector('.ask-msg.ai')?.textContent,
+    bold: document.querySelectorAll('.ask-msg.ai b').length,
+    br: document.querySelectorAll('.ask-msg.ai br').length,
+  }));
+  check('提问渲染用户消息与 AI 回答', m.userMsg && m.aiMsg && m.aiMsg.includes('秦国'), JSON.stringify(m.aiMsg));
+  check('回答 **加粗** 与换行渲染', m.bold === 1 && m.br >= 1, `bold:${m.bold} br:${m.br}`);
+  await page.evaluate(() => {
+    window.fetch = () => Promise.reject(new Error('conn refused'));
+  });
+  await page.fill('#askInput', '再问一次');
+  await page.click('#btnAskSend');
+  await page.waitForFunction(() => document.getElementById('askBody').textContent.includes('未启动'), { timeout: 5000 });
+  check('服务未启动时给出降级提示', true);
+}
+
 // —— 测验已移除：旧链接跳回单元页 ——
 await page.goto(url + '#/quiz/c01');
 await page.waitForSelector('.unit-page');
